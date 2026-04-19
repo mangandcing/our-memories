@@ -1,26 +1,104 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+:root,
+html.dark {
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --surface-alt: #0d0d0d;
+  --text: #f5e6c8;
+  --text-muted: #7a6a55;
+  --text-faint: #5a4a35;
+  --border: #1e1e1e;
+  --border-hover: #2e2e2e;
+  --gold: #c9a96e;
+  --gold-light: #e8c98a;
+  --surface-2: #141414;
+  --surface-3: #1a1a1a;
+  --text-dim: #3a3a3a;
+  --text-secondary: #a0a0a0;
+  --navbar-bg: rgba(10, 10, 10, 0.95);
+  --navbar-shadow: none;
+  --hero-gradient: radial-gradient(ellipse 80% 60% at 50% 30%, #1a1208 0%, #0d0a04 40%, #0a0a0a 100%);
+}
+
+html.light {
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --surface-alt: #ffffff;
+  --text: #1a1a1a;
+  --text-muted: #6b6b6b;
+  --text-faint: #9a9090;
+  --border: #e5e0d8;
+  --border-hover: #d0c8bc;
+  --gold: #b8922a;
+  --gold-light: #c9a030;
+  --surface-2: #f5f3f0;
+  --surface-3: #f0ede8;
+  --text-dim: #c0b8b0;
+  --text-secondary: #8a8a8a;
+  --navbar-bg: rgba(255, 255, 255, 0.95);
+  --navbar-shadow: 0 1px 0 0 #e5e0d8;
+  --hero-gradient: radial-gradient(ellipse 80% 60% at 50% 30%, #f0ece4 0%, #f5f2eb 40%, #faf8f5 100%);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-card: var(--surface);
+  --color-card-border: var(--border);
+  --color-muted: var(--text-muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-2%, -3%); }
+  20% { transform: translate(3%, 2%); }
+  30% { transform: translate(-1%, 4%); }
+  40% { transform: translate(4%, -1%); }
+  50% { transform: translate(-3%, 3%); }
+  60% { transform: translate(2%, -4%); }
+  70% { transform: translate(-4%, 1%); }
+  80% { transform: translate(1%, -2%); }
+  90% { transform: translate(-2%, 4%); }
+}
+
+.particle-shimmer {
+  background:
+    radial-gradient(ellipse at 15% 80%, rgba(212, 175, 55, 0.13) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 15%, rgba(212, 175, 55, 0.09) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, rgba(212, 175, 55, 0.05) 0%, transparent 65%);
+  animation: shimmerPulse 7s ease-in-out infinite;
+}
+
+@keyframes shimmerPulse {
+  0%, 100% { opacity: 0.65; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+.grain-overlay {
+  position: fixed;
+  inset: -200%;
+  width: 400%;
+  height: 400%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  animation: grain 8s steps(1) infinite;
+  z-index: 9999;
 }

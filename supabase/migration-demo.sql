@@ -1,0 +1,1 @@
+ALTER TABLE pages ADD COLUMN IF NOT EXISTS demo boolean NOT NULL DEFAULT false;

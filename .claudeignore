@@ -1,0 +1,30 @@
+# Dependencies — millions of files, Claude never needs these
+node_modules/
+
+# Next.js build output — generated automatically, not real code
+.next/
+out/
+dist/
+build/
+
+# Environment files — secret keys, never show Claude these
+.env
+.env.local
+.env.development
+.env.production
+
+# Lock files — auto-generated, not useful
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS junk files
+.DS_Store
+Thumbs.db
+
+# Public assets — Claude doesn't need to read images/fonts
+public/
