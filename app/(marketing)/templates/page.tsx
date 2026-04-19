@@ -18,7 +18,7 @@ export default async function TemplatesPage() {
     .eq('is_active', true)
     .order('sort_order')
 
-  const templates = ((data ?? []) as TemplateWithTier[]).sort((a, b) => {
+  const templates = ((data ?? []) as unknown as TemplateWithTier[]).sort((a, b) => {
     const ao = TIER_ORDER[a.tiers?.name] ?? 9
     const bo = TIER_ORDER[b.tiers?.name] ?? 9
     return ao - bo
