@@ -118,7 +118,7 @@ export default function DemoSection() {
             id: row.id,
             slug: row.slug,
             title: row.title,
-            template: row.templates as DemoRow["template"],
+            template: row.templates as unknown as DemoRow["template"],
           }))
         );
       });

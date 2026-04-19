@@ -37,7 +37,7 @@ function PriceRow({ row, tierId }: { row: DurationPrice; tierId: string }) {
         numPrice !== row.price ? updateDurationPrice(row.id, numPrice) : Promise.resolve({ success: true }),
         label !== row.label ? updateDurationLabel(row.id, label) : Promise.resolve({ success: true }),
       ])
-      const hasError = results.some((r) => r.error)
+      const hasError = results.some((r) => 'error' in r && r.error)
       if (hasError) {
         setStatus('error')
       } else {

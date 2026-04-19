@@ -61,7 +61,7 @@ function SettingField({
   const [value, setValue] = useState(initialValue)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [isPending, startTransition] = useTransition()
-  const savedTimer = useRef<ReturnType<typeof setTimeout>>()
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => { setValue(initialValue) }, [initialValue])
 

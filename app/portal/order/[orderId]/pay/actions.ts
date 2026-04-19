@@ -122,9 +122,9 @@ export async function uploadScreenshot(
 
   await sendTelegramAlert({
     orderId,
-    customerName: (order.users as { full_name: string | null; email: string }).full_name
-      ?? (order.users as { full_name: string | null; email: string }).email,
-    tierName: (order.tiers as { name: string }).name,
+    customerName: (order.users as unknown as { full_name: string | null; email: string }).full_name
+      ?? (order.users as unknown as { full_name: string | null; email: string }).email,
+    tierName: (order.tiers as unknown as { name: string }).name,
     amount: order.amount,
   })
 
