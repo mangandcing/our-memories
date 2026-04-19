@@ -24,7 +24,7 @@ function PriceRow({ row, tierId }: { row: DurationPrice; tierId: string }) {
   const [label, setLabel] = useState(row.label)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [isPending, startTransition] = useTransition()
-  const savedTimer = useRef<ReturnType<typeof setTimeout>>()
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const save = () => {
     const numPrice = parseFloat(price)
