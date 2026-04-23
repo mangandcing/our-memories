@@ -11,7 +11,8 @@
       "Bash(mkdir -p \"c:/Users/mangm/OneDrive/Documents/our-memories/app/portal/pages\")",
       "Bash(mkdir -p \"c:/Users/mangm/OneDrive/Documents/our-memories/app/portal/order/new\")",
       "Bash(mkdir -p \"c:/Users/mangm/OneDrive/Documents/our-memories/app/portal/profile\")",
-      "Bash(dir \"c:\\\\Users\\\\mangm\\\\OneDrive\\\\Documents\\\\our-memories\\\\app\\\\portal\\\\order\" /s)"
+      "Bash(dir \"c:\\\\Users\\\\mangm\\\\OneDrive\\\\Documents\\\\our-memories\\\\app\\\\portal\\\\order\" /s)",
+      "Bash(grep -E \"\\\\.tsx$\")"
     ]
   }
 }

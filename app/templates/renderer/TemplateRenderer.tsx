@@ -18,6 +18,8 @@ import CandleSection from '../sections/CandleSection'
 import GuestBookSection from '../sections/GuestBookSection'
 import MapSection from '../sections/MapSection'
 import SlideshowSection from '../sections/SlideshowSection'
+import VoiceSection from '../sections/VoiceSection'
+import WeatherSection from '../sections/WeatherSection'
 import { ShareModal } from '../../components/portal/ShareModal'
 
 const cormorant = Cormorant_Garamond({
@@ -66,6 +68,8 @@ const SECTION_MAP: Partial<Record<SectionKey, SectionComponent>> = {
   candle: CandleSection,
   guest_book: GuestBookSection,
   map: MapSection,
+  voice: VoiceSection,
+  weather: WeatherSection,
   footer: FooterSection,
 }
 

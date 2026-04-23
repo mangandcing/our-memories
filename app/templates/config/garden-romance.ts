@@ -17,7 +17,7 @@ const gardenRomance: TemplateConfig = {
     heroGradient:
       'radial-gradient(ellipse at 50% 40%, #0e2a18 0%, #0a1a10 55%, #050d08 100%)',
   },
-  sections: ['hero', 'story', 'gallery', 'music', 'countdown', 'rsvp', 'map', 'guest_book', 'gift', 'footer'],
+  sections: ['hero', 'story', 'gallery', 'weather', 'music', 'countdown', 'rsvp', 'map', 'guest_book', 'gift', 'footer'],
   animations: 'cinematic',
 }
 

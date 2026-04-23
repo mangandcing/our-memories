@@ -17,7 +17,7 @@ const milestoneBirthday: TemplateConfig = {
     heroGradient:
       'radial-gradient(ellipse at 45% 40%, #2a0f1f 0%, #1a0a14 50%, #0d050a 100%)',
   },
-  sections: ['hero', 'story', 'gallery', 'music', 'countdown', 'guest_book', 'gift', 'footer'],
+  sections: ['hero', 'story', 'gallery', 'weather', 'music', 'countdown', 'guest_book', 'gift', 'footer'],
   animations: 'cinematic',
 }
 

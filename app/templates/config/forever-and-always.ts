@@ -17,7 +17,7 @@ const foreverAndAlways: TemplateConfig = {
     heroGradient:
       'radial-gradient(ellipse at 45% 40%, #0e2a2a 0%, #0a1a1a 55%, #050d0d 100%)',
   },
-  sections: ['hero', 'story', 'gallery', 'music', 'countdown', 'guest_book', 'gift', 'footer'],
+  sections: ['hero', 'story', 'gallery', 'weather', 'music', 'countdown', 'guest_book', 'gift', 'footer'],
   animations: 'cinematic',
 }
 

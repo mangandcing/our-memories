@@ -25,6 +25,8 @@ const royalWedding: TemplateConfig = {
     'countdown',
     'rsvp',
     'video',
+    'voice',
+    'weather',
     'guest_book',
     'gift',
     'footer',

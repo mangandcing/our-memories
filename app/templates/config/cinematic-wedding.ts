@@ -17,7 +17,7 @@ const cinematicWedding: TemplateConfig = {
     heroGradient:
       'linear-gradient(160deg, #05050f 0%, #050508 45%, #080510 100%)',
   },
-  sections: ['hero', 'story', 'gallery', 'music', 'countdown', 'guest_book', 'gift', 'footer'],
+  sections: ['hero', 'story', 'gallery', 'weather', 'music', 'countdown', 'guest_book', 'gift', 'footer'],
   animations: 'cinematic',
   effects: {
     filmGrain: true,

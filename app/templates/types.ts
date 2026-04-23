@@ -13,6 +13,8 @@ export type SectionKey =
   | 'candle'
   | 'guest_book'
   | 'map'
+  | 'voice'
+  | 'weather'
   | 'footer'
 
 export type AnimationVariant = 'minimal' | 'cinematic' | 'dramatic'
@@ -65,6 +67,11 @@ export interface PageContent {
   venueAddress?: string
   brideName?: string
   groomName?: string
+  name1?: string
+  name2?: string
+  eventDate?: string
+  accessCode?: string
+  passwordProtected?: boolean
   [key: string]: unknown
 }
 

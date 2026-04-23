@@ -17,7 +17,7 @@ const eternalTribute: TemplateConfig = {
     heroGradient:
       'radial-gradient(ellipse at 50% 40%, #1a1530 0%, #0d0a1e 45%, #06050f 100%)',
   },
-  sections: ['hero', 'story', 'candle', 'slideshow', 'music', 'video', 'gift', 'footer'],
+  sections: ['hero', 'story', 'candle', 'slideshow', 'music', 'video', 'voice', 'weather', 'gift', 'footer'],
   animations: 'dramatic',
   effects: {
     parallax: true,

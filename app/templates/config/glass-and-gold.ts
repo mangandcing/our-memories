@@ -17,7 +17,7 @@ const glassAndGold: TemplateConfig = {
     heroGradient:
       'linear-gradient(150deg, #05080a 0%, #050a0e 45%, #080810 100%)',
   },
-  sections: ['hero', 'story', 'gallery', 'music', 'countdown', 'rsvp', 'map', 'guest_book', 'gift', 'footer'],
+  sections: ['hero', 'story', 'gallery', 'weather', 'music', 'countdown', 'rsvp', 'map', 'guest_book', 'gift', 'footer'],
   animations: 'cinematic',
   effects: {
     filmGrain: true,

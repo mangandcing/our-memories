@@ -17,7 +17,7 @@ const eternalDevotion: TemplateConfig = {
     heroGradient:
       'radial-gradient(ellipse at 55% 35%, #2a0a0e 0%, #1a0a0a 45%, #0d0505 100%)',
   },
-  sections: ['hero', 'story', 'slideshow', 'music', 'video', 'gift', 'footer'],
+  sections: ['hero', 'story', 'slideshow', 'music', 'video', 'voice', 'weather', 'gift', 'footer'],
   animations: 'dramatic',
   effects: {
     parallax: true,

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { createBrowserClient } from '@supabase/ssr'
 import { savePage, submitForReview, deleteMediaFile, updateMediaOrder, updateGalleryVisibility } from './actions'
+import VoiceRecorder from '../../../../components/portal/VoiceRecorder'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,6 +21,7 @@ interface ContentFields {
   rsvpEnabled: boolean
   rsvpDeadline: string
   accessCode: string
+  passwordProtected: boolean
 }
 
 interface GiftState {
@@ -348,6 +350,7 @@ export default function PageEditor(props: PageEditorProps) {
     rsvpEnabled: (c.rsvpEnabled as boolean) ?? false,
     rsvpDeadline: (c.rsvpDeadline as string) ?? '',
     accessCode: (c.accessCode as string) ?? '',
+    passwordProtected: (c.passwordProtected as boolean) ?? false,
   })
   const [gift, setGift] = useState<GiftState>({
     enabled: props.gift_enabled,
@@ -359,7 +362,10 @@ export default function PageEditor(props: PageEditorProps) {
     props.media.filter(m => m.type === 'photo').sort((a, b) => a.sort_order - b.sort_order)
   )
   const [music, setMusic] = useState<MediaRow | null>(
-    props.media.find(m => m.type === 'audio') ?? null
+    props.media.find(m => m.type === 'audio' && m.file_name !== 'voice-message.webm') ?? null
+  )
+  const [voice, setVoice] = useState<MediaRow | null>(
+    props.media.find(m => m.type === 'audio' && m.file_name === 'voice-message.webm') ?? null
   )
   const [video, setVideo] = useState<MediaRow | null>(
     props.media.find(m => m.type === 'video') ?? null
@@ -1010,6 +1016,59 @@ export default function PageEditor(props: PageEditorProps) {
                       <span className="text-[var(--text-muted)]"><IconVideo /></span>
                     </DropZone>
                   )}
+                </section>
+              </>
+            )}
+
+            {/* ── Voice Message (Luxury) ────────────────────────────────── */}
+            {isLuxury && (
+              <>
+                <Divider />
+                <section>
+                  <SectionLabel>Voice Message</SectionLabel>
+                  <p className="text-xs text-[var(--text-muted)] mb-3">
+                    Record a personal audio message for your guests
+                  </p>
+                  <VoiceRecorder
+                    pageId={props.id}
+                    userId={props.user_id}
+                    existing={voice}
+                    onSaved={(row) => setVoice(row)}
+                    onDeleted={() => setVoice(null)}
+                  />
+                </section>
+              </>
+            )}
+
+            {/* ── Password Protection (Luxury) ───────────────────────────── */}
+            {isLuxury && (
+              <>
+                <Divider />
+                <section>
+                  <SectionLabel>Page Privacy</SectionLabel>
+                  <div className="space-y-4">
+                    <Toggle
+                      checked={content.passwordProtected}
+                      onChange={v => setField('passwordProtected')(v)}
+                      label="Password protect this page"
+                      description="Visitors must enter an access code before seeing any content"
+                    />
+                    {content.passwordProtected && (
+                      <div>
+                        <FieldLabel>Access Code</FieldLabel>
+                        <input
+                          type="text"
+                          value={content.accessCode}
+                          onChange={e => setField('accessCode')(e.target.value)}
+                          className={INPUT_CLS}
+                          placeholder="e.g. ourwedding2026"
+                        />
+                        <p className="text-[10px] text-[var(--text-dim)] mt-1.5">
+                          Share this code privately with your guests
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </section>
               </>
             )}

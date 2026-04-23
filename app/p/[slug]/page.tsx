@@ -4,6 +4,7 @@ import { createClient } from '../../lib/supabase-server'
 import { getTemplateConfig } from '../../templates/config'
 import TemplateRenderer from '../../templates/renderer/TemplateRenderer'
 import FloatingThemeToggle from '../../components/ui/FloatingThemeToggle'
+import PasswordGate from './PasswordGate'
 import type { PageData, MediaFile } from '../../templates/types'
 
 interface Props {
@@ -90,6 +91,9 @@ export default async function PublicPage({ params }: Props) {
   const isDemo = !!(page as { demo?: boolean }).demo
   const tierName = (page.tier as unknown as { name: string } | null)?.name ?? 'Basic'
   const isLuxury = tierName === 'Luxury'
+  const rawContent = (page.content ?? {}) as Record<string, unknown>
+  const isPasswordProtected = isLuxury && !!rawContent.passwordProtected
+  const accessCode = (rawContent.accessCode as string) ?? ''
 
   console.log(`[/p/${slug}] media count: ${(page.media ?? []).length}`)
 
@@ -111,7 +115,7 @@ export default async function PublicPage({ params }: Props) {
     ),
   }
 
-  return (
+  const pageContent = (
     <>
       {isDemo && (
         <div
@@ -145,4 +149,14 @@ export default async function PublicPage({ params }: Props) {
       {!isLuxury && <FloatingThemeToggle />}
     </>
   )
+
+  if (isPasswordProtected && accessCode) {
+    return (
+      <PasswordGate accessCode={accessCode} pageId={pageData.id}>
+        {pageContent}
+      </PasswordGate>
+    )
+  }
+
+  return pageContent
 }

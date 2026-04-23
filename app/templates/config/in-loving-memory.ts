@@ -17,7 +17,7 @@ const inLovingMemory: TemplateConfig = {
     heroGradient:
       'radial-gradient(ellipse at 50% 40%, #141c30 0%, #0c1020 55%, #080c14 100%)',
   },
-  sections: ['hero', 'story', 'candle', 'gallery', 'music', 'gift', 'footer'],
+  sections: ['hero', 'story', 'candle', 'gallery', 'weather', 'music', 'gift', 'footer'],
   animations: 'cinematic',
   effects: {
     filmGrain: true,

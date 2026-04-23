@@ -5,6 +5,31 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { SectionProps, MediaFile } from '../types'
 import { getMotionVariants } from '../types'
 
+async function downloadZip(photos: MediaFile[], title: string) {
+  const JSZip = (await import('jszip')).default
+  const zip = new JSZip()
+  const folder = zip.folder('photos')!
+  await Promise.all(
+    photos.map(async (photo, i) => {
+      try {
+        const res = await fetch(photo.url)
+        const blob = await res.blob()
+        const ext = blob.type.split('/')[1] ?? 'jpg'
+        folder.file(`photo-${String(i + 1).padStart(3, '0')}.${ext}`, blob)
+      } catch {
+        // skip failed photos
+      }
+    })
+  )
+  const content = await zip.generateAsync({ type: 'blob' })
+  const url = URL.createObjectURL(content)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-photos.zip`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 function ShimmerText({ children, theme }: { children: React.ReactNode; theme: SectionProps['theme'] }) {
   return (
     <motion.span
@@ -182,8 +207,15 @@ function ShimmerCard({ theme, index }: { theme: SectionProps['theme']; index: nu
 
 export default function GallerySection({ page, theme, animations, tierName }: SectionProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+  const [zipping, setZipping] = useState(false)
   const variants = getMotionVariants(animations)
   const photos = page.media.filter((m) => m.type === 'photo')
+
+  async function handleDownloadZip() {
+    if (zipping || photos.length === 0) return
+    setZipping(true)
+    try { await downloadZip(photos, page.title) } finally { setZipping(false) }
+  }
 
   const isClickable = tierName !== 'basic'
 
@@ -210,6 +242,47 @@ export default function GallerySection({ page, theme, animations, tierName }: Se
           </span>
           <div style={{ flex: 1, height: 1, background: theme.divider }} />
         </motion.div>
+
+        {tierName === 'luxury' && photos.length > 0 && (
+          <motion.div
+            className="flex justify-end mb-6"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+          >
+            <button
+              onClick={handleDownloadZip}
+              disabled={zipping}
+              className="flex items-center gap-2 rounded-full px-4 py-2 text-[10px] tracking-[0.2em] uppercase transition-all disabled:opacity-50"
+              style={{
+                border: `1px solid ${theme.accent}40`,
+                color: theme.accent,
+                fontFamily: theme.font,
+                background: `${theme.accent}08`,
+              }}
+            >
+              {zipping ? (
+                <>
+                  <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                  Preparing&hellip;
+                </>
+              ) : (
+                <>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Download All Photos
+                </>
+              )}
+            </button>
+          </motion.div>
+        )}
 
         {photos.length === 0 ? (
           <>
