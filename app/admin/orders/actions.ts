@@ -3,6 +3,10 @@
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '../../lib/supabase-admin'
 import { createClient } from '../../lib/supabase-server'
+import { sendEmail } from '../../lib/email'
+import { paymentApprovedEmail } from '../../lib/emails/payment-approved'
+import { paymentRejectedEmail } from '../../lib/emails/payment-rejected'
+import { pagePublishedEmail } from '../../lib/emails/page-published'
 
 async function sendTelegramAlert(message: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN
@@ -32,7 +36,7 @@ export async function approveOrder(orderId: string) {
     .from('orders')
     .update({ status: 'approved', reviewed_by: user.id, reviewed_at: new Date().toISOString() })
     .eq('id', orderId)
-    .select('id, amount, payment_method, users!orders_user_id_fkey (full_name, email)')
+    .select('id, amount, payment_method, users!orders_user_id_fkey (full_name, email), pages!orders_page_id_fkey (id, slug, title)')
     .single()
 
   if (error) return { error: error.message }
@@ -40,6 +44,21 @@ export async function approveOrder(orderId: string) {
   await sendTelegramAlert(
     `<b>Payment Approved</b>\nCustomer: ${(order as any).users?.full_name ?? 'Unknown'}\nAmount: ${Number((order as any).amount).toLocaleString()} MMK\nMethod: ${(order as any).payment_method?.replace(/_/g, ' ')}`
   )
+
+  const customerEmail = (order as any).users?.email
+  if (customerEmail) {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://our-memories.store'
+    const page = (order as any).pages
+    sendEmail({
+      to: customerEmail,
+      subject: 'Payment Confirmed — Start Building Your Page',
+      html: paymentApprovedEmail({
+        customerName: (order as any).users?.full_name ?? customerEmail,
+        pageTitle: page?.title ?? 'Your Page',
+        editorUrl: page?.id ? `${siteUrl}/portal/pages/${page.id}/edit` : `${siteUrl}/portal`,
+      }),
+    }).catch(console.error)
+  }
 
   revalidatePath('/admin/orders')
   revalidatePath('/admin')
@@ -60,7 +79,7 @@ export async function approveAndPublishOrder(orderId: string, pageId: string) {
     .from('orders')
     .update({ status: 'approved', reviewed_by: user.id, reviewed_at: new Date().toISOString() })
     .eq('id', orderId)
-    .select('id, amount, payment_method, duration_prices!orders_duration_price_id_fkey (duration_months), users!orders_user_id_fkey (full_name, email)')
+    .select('id, amount, payment_method, duration_prices!orders_duration_price_id_fkey (duration_months), users!orders_user_id_fkey (full_name, email), pages!orders_page_id_fkey (id, slug, title)')
     .single()
 
   if (orderError) return { error: orderError.message }
@@ -80,6 +99,39 @@ export async function approveAndPublishOrder(orderId: string, pageId: string) {
   await sendTelegramAlert(
     `<b>Payment Approved + Page Published</b>\nCustomer: ${(order as any).users?.full_name ?? 'Unknown'}\nAmount: ${Number((order as any).amount).toLocaleString()} MMK\nMethod: ${(order as any).payment_method?.replace(/_/g, ' ')}`
   )
+
+  const customerEmail = (order as any).users?.email
+  if (customerEmail) {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://our-memories.store'
+    const page = (order as any).pages
+    const customerName = (order as any).users?.full_name ?? customerEmail
+
+    sendEmail({
+      to: customerEmail,
+      subject: 'Payment Confirmed — Start Building Your Page',
+      html: paymentApprovedEmail({
+        customerName,
+        pageTitle: page?.title ?? 'Your Page',
+        editorUrl: page?.id ? `${siteUrl}/portal/pages/${page.id}/edit` : `${siteUrl}/portal`,
+      }),
+    }).catch(console.error)
+
+    if (page?.slug) {
+      const expiryFormatted = expiresAt
+        ? new Date(expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
+        : 'No expiry'
+      sendEmail({
+        to: customerEmail,
+        subject: "Your Page is Live! 🎉",
+        html: pagePublishedEmail({
+          customerName,
+          pageTitle: page.title ?? 'Your Page',
+          pageUrl: `${siteUrl}/p/${page.slug}`,
+          expiryDate: expiryFormatted,
+        }),
+      }).catch(console.error)
+    }
+  }
 
   revalidatePath('/admin/orders')
   revalidatePath('/admin/pages')
@@ -106,7 +158,7 @@ export async function rejectOrder(orderId: string, reason: string) {
       reviewed_at: new Date().toISOString(),
     })
     .eq('id', orderId)
-    .select('id, amount, users!orders_user_id_fkey (full_name, email)')
+    .select('id, amount, users!orders_user_id_fkey (full_name, email), pages!orders_page_id_fkey (title, slug)')
     .single()
 
   if (error) return { error: error.message }
@@ -115,7 +167,20 @@ export async function rejectOrder(orderId: string, reason: string) {
     `<b>Payment Rejected</b>\nCustomer: ${(order as any).users?.full_name ?? 'Unknown'}\nReason: ${reason}`
   )
 
-  // TODO: send rejection email to customer at (order as any).users?.email
+  const customerEmail = (order as any).users?.email
+  if (customerEmail) {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://our-memories.store'
+    sendEmail({
+      to: customerEmail,
+      subject: 'Payment Screenshot Issue — Our Memories',
+      html: paymentRejectedEmail({
+        customerName: (order as any).users?.full_name ?? customerEmail,
+        pageTitle: (order as any).pages?.title ?? 'Your Page',
+        reason,
+        portalUrl: `${siteUrl}/portal`,
+      }),
+    }).catch(console.error)
+  }
 
   revalidatePath('/admin/orders')
   revalidatePath('/admin')

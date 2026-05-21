@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import AnimatedSection from "../ui/AnimatedSection";
 import { createClient } from "@/app/lib/supabase";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface Tier {
@@ -83,6 +84,7 @@ export default function PricingTiers() {
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [prices, setPrices] = useState<DurationPrice[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const supabase = createClient();
@@ -208,16 +210,17 @@ export default function PricingTiers() {
                     ))}
                   </ul>
                 )}
-
                 <button
-                  className={`mt-auto w-full rounded-full py-3 min-h-[44px] text-sm font-medium tracking-wide transition-all duration-300 hover:scale-105 active:scale-95 ${
-                    meta.highlight
-                      ? "bg-[var(--gold)] text-[var(--bg)] hover:bg-[var(--gold-light)]"
-                      : "border border-[var(--gold)]/30 text-[var(--text)] hover:border-[var(--gold)]/60 hover:bg-[var(--gold)]/5"
-                  }`}
-                >
-                  Get started
-                </button>
+                  onClick={() => router.push('/portal')}
+                    className={`mt-auto w-full rounded-full py-3 min-h-[44px] text-sm font-medium tracking-wide transition-all duration-300 hover:scale-105 active:scale-95 ${
+                      meta.highlight
+                        ? "bg-[var(--gold)] text-[var(--bg)] hover:bg-[var(--gold-light)]"
+                        : "border border-[var(--gold)]/30 text-[var(--text)] hover:border-[var(--gold)]/60 hover:bg-[var(--gold)]/5"
+          }`}
+>
+          Get started
+          </button>
+
               </motion.div>
             );
           })}

@@ -206,11 +206,13 @@ WHERE slug = 'forever-and-always';
 -- ─────────────────────────────────────────────────────────────
 -- New templates — INSERT if not exists, otherwise UPDATE
 
-INSERT INTO templates (slug, name, tier, is_active, renderer_config)
-VALUES (
+INSERT INTO templates (slug, name, tier_id, page_type, sort_order, is_active, renderer_config)
+SELECT
   'eternal-tribute',
   'Eternal Tribute',
-  'luxury',
+  t.id,
+  'memorial_tribute',
+  5,
   true,
   '{
     "slug": "eternal-tribute",
@@ -234,19 +236,22 @@ VALUES (
       "parallax": true,
       "particles": true
     }
-  }'
-)
+  }'::jsonb
+FROM tiers t
+WHERE t.name = 'Luxury'
 ON CONFLICT (slug) DO UPDATE
 SET renderer_config = EXCLUDED.renderer_config,
     name = EXCLUDED.name;
 
 -- ─────────────────────────────────────────────────────────────
 
-INSERT INTO templates (slug, name, tier, is_active, renderer_config)
-VALUES (
+INSERT INTO templates (slug, name, tier_id, page_type, sort_order, is_active, renderer_config)
+SELECT
   'in-loving-memory',
   'In Loving Memory',
-  'premium',
+  t.id,
+  'memorial_tribute',
+  5,
   true,
   '{
     "slug": "in-loving-memory",
@@ -269,19 +274,22 @@ VALUES (
     "effects": {
       "filmGrain": true
     }
-  }'
-)
+  }'::jsonb
+FROM tiers t
+WHERE t.name = 'Premium'
 ON CONFLICT (slug) DO UPDATE
 SET renderer_config = EXCLUDED.renderer_config,
     name = EXCLUDED.name;
 
 -- ─────────────────────────────────────────────────────────────
 
-INSERT INTO templates (slug, name, tier, is_active, renderer_config)
-VALUES (
+INSERT INTO templates (slug, name, tier_id, page_type, sort_order, is_active, renderer_config)
+SELECT
   'glass-and-gold',
   'Glass and Gold',
-  'premium',
+  t.id,
+  'wedding_invitation',
+  10,
   true,
   '{
     "slug": "glass-and-gold",
@@ -304,19 +312,22 @@ VALUES (
     "effects": {
       "filmGrain": true
     }
-  }'
-)
+  }'::jsonb
+FROM tiers t
+WHERE t.name = 'Premium'
 ON CONFLICT (slug) DO UPDATE
 SET renderer_config = EXCLUDED.renderer_config,
     name = EXCLUDED.name;
 
 -- ─────────────────────────────────────────────────────────────
 
-INSERT INTO templates (slug, name, tier, is_active, renderer_config)
-VALUES (
+INSERT INTO templates (slug, name, tier_id, page_type, sort_order, is_active, renderer_config)
+SELECT
   'simple-invitation',
   'Simple Invitation',
-  'basic',
+  t.id,
+  'wedding_invitation',
+  3,
   true,
   '{
     "slug": "simple-invitation",
@@ -336,8 +347,9 @@ VALUES (
     },
     "sections": ["hero", "story", "map", "gift", "footer"],
     "animations": "minimal"
-  }'
-)
+  }'::jsonb
+FROM tiers t
+WHERE t.name = 'Basic'
 ON CONFLICT (slug) DO UPDATE
 SET renderer_config = EXCLUDED.renderer_config,
     name = EXCLUDED.name;

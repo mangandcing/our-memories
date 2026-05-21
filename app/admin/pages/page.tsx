@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { publishPage, unpublishPage, adminToggleGallery } from './actions'
+import { publishPage, unpublishPage, adminToggleGallery, rejectContent } from './actions'
 import Link from 'next/link'
 
 type AdminPage = {
@@ -66,8 +66,27 @@ function PageRow({ page, onRefresh }: { page: AdminPage; onRefresh: () => void }
   const [error, setError] = useState<string | null>(null)
   const [galleryPending, setGalleryPending] = useState(false)
   const [inGallery, setInGallery] = useState(page.show_in_gallery)
+  const [showRejectForm, setShowRejectForm] = useState(false)
+  const [rejectReason, setRejectReason] = useState('')
+  const [rejectSections, setRejectSections] = useState('')
+  const [rejectPending, setRejectPending] = useState(false)
+  const [rejectError, setRejectError] = useState<string | null>(null)
 
   const approvedOrder = page.orders?.find((o) => o.status === 'approved')
+
+  const handleRejectContent = async () => {
+    if (!rejectReason.trim()) { setRejectError('Please enter a reason.'); return }
+    setRejectError(null)
+    setRejectPending(true)
+    const sections = rejectSections.split(',').map((s) => s.trim()).filter(Boolean)
+    const res = await rejectContent(page.id, rejectReason.trim(), sections)
+    setRejectPending(false)
+    if (res.error) { setRejectError(res.error); return }
+    setShowRejectForm(false)
+    setRejectReason('')
+    setRejectSections('')
+    onRefresh()
+  }
 
   const handlePublish = () => {
     if (!approvedOrder) return
@@ -112,6 +131,14 @@ function PageRow({ page, onRefresh }: { page: AdminPage; onRefresh: () => void }
           Review Content
         </Link>
       )}
+      {page.status === 'pending_review' && (
+        <button
+          onClick={() => { setShowRejectForm((v) => !v); setRejectError(null) }}
+          className="text-xs text-red-400 hover:text-red-300 transition-colors whitespace-nowrap"
+        >
+          Reject Content
+        </button>
+      )}
       {page.is_published ? (
         <button
           onClick={handleUnpublish}
@@ -150,6 +177,41 @@ function PageRow({ page, onRefresh }: { page: AdminPage; onRefresh: () => void }
     </div>
   )
 
+  const rejectForm = showRejectForm && (
+    <div className="mt-2 p-3 bg-[var(--surface-2)] border border-red-500/20 rounded-lg space-y-2">
+      <textarea
+        value={rejectReason}
+        onChange={(e) => setRejectReason(e.target.value)}
+        placeholder="Reason for rejection (required)"
+        rows={2}
+        className="w-full text-xs bg-[var(--surface)] border border-[var(--border)] rounded px-2 py-1.5 text-[var(--text)] placeholder:text-[var(--text-dim)] resize-none focus:outline-none focus:border-red-400/50"
+      />
+      <input
+        type="text"
+        value={rejectSections}
+        onChange={(e) => setRejectSections(e.target.value)}
+        placeholder="Flagged sections, comma-separated (optional)"
+        className="w-full text-xs bg-[var(--surface)] border border-[var(--border)] rounded px-2 py-1.5 text-[var(--text)] placeholder:text-[var(--text-dim)] focus:outline-none focus:border-red-400/50"
+      />
+      {rejectError && <p className="text-xs text-red-400">{rejectError}</p>}
+      <div className="flex gap-2">
+        <button
+          onClick={handleRejectContent}
+          disabled={rejectPending}
+          className="text-xs bg-red-500/10 text-red-400 hover:bg-red-500/20 disabled:opacity-50 px-3 py-1.5 rounded transition-colors"
+        >
+          {rejectPending ? 'Sending…' : 'Confirm Rejection'}
+        </button>
+        <button
+          onClick={() => { setShowRejectForm(false); setRejectReason(''); setRejectSections(''); setRejectError(null) }}
+          className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors px-2 py-1.5"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+
   return (
     <>
       {/* Mobile card */}
@@ -170,6 +232,7 @@ function PageRow({ page, onRefresh }: { page: AdminPage; onRefresh: () => void }
         </div>
         {error && <p className="text-xs text-red-400 mb-1">{error}</p>}
         {actions}
+        {rejectForm}
       </div>
 
       {/* Desktop table row */}
@@ -197,6 +260,44 @@ function PageRow({ page, onRefresh }: { page: AdminPage; onRefresh: () => void }
         <td className="px-5 py-3.5 text-[var(--text-muted)] whitespace-nowrap">{formatDate(page.created_at)}</td>
         <td className="px-5 py-3.5">{actions}</td>
       </tr>
+      {showRejectForm && (
+        <tr className="hidden md:table-row border-b border-[var(--surface-3)]">
+          <td colSpan={7} className="px-5 py-3">
+            <div className="flex flex-wrap items-start gap-2">
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Reason for rejection (required)"
+                rows={2}
+                className="text-xs bg-[var(--surface-2)] border border-[var(--border)] rounded px-2 py-1.5 text-[var(--text)] placeholder:text-[var(--text-dim)] resize-none focus:outline-none focus:border-red-400/50 w-64"
+              />
+              <input
+                type="text"
+                value={rejectSections}
+                onChange={(e) => setRejectSections(e.target.value)}
+                placeholder="Flagged sections (comma-separated)"
+                className="text-xs bg-[var(--surface-2)] border border-[var(--border)] rounded px-2 py-1.5 text-[var(--text)] placeholder:text-[var(--text-dim)] focus:outline-none focus:border-red-400/50 w-56"
+              />
+              <div className="flex gap-2 items-center">
+                <button
+                  onClick={handleRejectContent}
+                  disabled={rejectPending}
+                  className="text-xs bg-red-500/10 text-red-400 hover:bg-red-500/20 disabled:opacity-50 px-3 py-1.5 rounded transition-colors whitespace-nowrap"
+                >
+                  {rejectPending ? 'Sending…' : 'Confirm Rejection'}
+                </button>
+                <button
+                  onClick={() => { setShowRejectForm(false); setRejectReason(''); setRejectSections(''); setRejectError(null) }}
+                  className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+                >
+                  Cancel
+                </button>
+                {rejectError && <p className="text-xs text-red-400">{rejectError}</p>}
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
     </>
   )
 }

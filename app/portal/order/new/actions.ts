@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from '../../../lib/supabase-server'
+import { sendEmail } from '../../../lib/email'
+import { orderConfirmationEmail } from '../../../lib/emails/order-confirmation'
 
 export async function checkSlugAvailable(slug: string): Promise<boolean> {
   if (!slug) return false
@@ -33,6 +35,12 @@ export async function submitOrder(payload: {
     .single()
 
   if (!dp) return { success: false, error: 'Invalid duration selected' }
+
+  const { data: tierData } = await supabase
+    .from('tiers')
+    .select('name')
+    .eq('id', payload.tierId)
+    .single()
 
   const { data: page, error: pageError } = await supabase
     .from('pages')
@@ -68,6 +76,23 @@ export async function submitOrder(payload: {
     .single()
 
   if (orderError) return { success: false, error: orderError.message }
+
+  const customerEmail = user.email
+  if (customerEmail) {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://our-memories.store'
+    sendEmail({
+      to: customerEmail,
+      subject: 'Your Order is Confirmed — Our Memories',
+      html: orderConfirmationEmail({
+        customerName: user.user_metadata?.full_name ?? user.user_metadata?.name ?? customerEmail,
+        tier: tierData?.name ?? 'Unknown',
+        amount: dp.price,
+        pageTitle: payload.title,
+        orderId: order.id,
+        portalUrl: `${siteUrl}/portal`,
+      }),
+    }).catch(console.error)
+  }
 
   return { success: true, orderId: order.id }
 }

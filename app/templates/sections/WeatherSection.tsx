@@ -103,24 +103,32 @@ async function geocode(venueName?: string, venueAddress?: string): Promise<{ lat
 
 async function fetchWeather(lat: number, lon: number, date: string): Promise<WeatherData | null> {
   const today = new Date().toISOString().slice(0, 10)
-  const isPast = date < today
-  const base = isPast
-    ? 'https://archive-api.open-meteo.com/v1/archive'
-    : 'https://api.open-meteo.com/v1/forecast'
+  const diffDays = Math.floor((new Date(date + 'T00:00:00').getTime() - new Date(today + 'T00:00:00').getTime()) / 86400000)
+  const isPast = diffDays < 0
+  const isRecentPast = isPast && diffDays >= -92
+  const base = (!isPast || isRecentPast)
+    ? 'https://api.open-meteo.com/v1/forecast'
+    : 'https://archive-api.open-meteo.com/v1/archive'
+  const pastDaysParam = isRecentPast ? `&past_days=${Math.abs(diffDays) + 1}` : ''
+  const url = `${base}?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto&start_date=${date}&end_date=${date}${pastDaysParam}`
+  console.log('[WeatherSection] fetching:', url)
   try {
-    const res = await fetch(
-      `${base}?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto&start_date=${date}&end_date=${date}`
-    )
+    const res = await fetch(url)
     const json = await res.json()
+    console.log('[WeatherSection] API response:', json)
     const d = json?.daily
-    if (!d?.weathercode?.[0] === undefined) return null
+    if (!d?.weathercode || d.weathercode[0] === null || d.weathercode[0] === undefined) {
+      console.log('[WeatherSection] no weathercode in response')
+      return null
+    }
     return {
       code: d.weathercode[0] as number,
       maxTemp: Math.round(d.temperature_2m_max[0] as number),
       minTemp: Math.round(d.temperature_2m_min[0] as number),
       date,
     }
-  } catch {
+  } catch (err) {
+    console.error('[WeatherSection] fetch error:', err)
     return null
   }
 }
@@ -133,11 +141,22 @@ function WeatherSectionContent({ page, theme }: SectionProps) {
   const eventDate = page.content.eventDate as string | undefined
 
   useEffect(() => {
+    console.log('[WeatherSection] eventDate:', eventDate)
+    console.log('[WeatherSection] page.content:', page.content)
+
     if (!eventDate) { setLoading(false); return }
 
+    const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+    if (!ISO_DATE.test(eventDate)) {
+      console.warn('[WeatherSection] eventDate is not YYYY-MM-DD format:', eventDate)
+      setLoading(false)
+      return
+    }
+
     const today = new Date()
-    const event = new Date(eventDate)
+    const event = new Date(eventDate + 'T00:00:00')
     const diffDays = Math.floor((event.getTime() - today.getTime()) / 86400000)
+    console.log('[WeatherSection] diffDays from today:', diffDays)
 
     if (diffDays > 16) { setTooFar(true); setLoading(false); return }
 

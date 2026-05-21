@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from './supabase-server'
+import { sendEmail } from './email'
+import { rsvpReceivedEmail } from './emails/rsvp-received'
 
 async function sendTelegramAlert(message: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN
@@ -56,9 +58,15 @@ export async function submitRsvp(
 
   const { data: page } = await supabase
     .from('pages')
-    .select('title, slug')
+    .select('title, slug, users!pages_user_id_fkey (full_name, email)')
     .eq('id', pageId)
     .maybeSingle()
+
+  const { count: attendingCount } = await supabase
+    .from('rsvp_responses')
+    .select('*', { count: 'exact', head: true })
+    .eq('page_id', pageId)
+    .eq('status', 'attending')
 
   const statusLabel =
     data.status === 'attending' ? 'Attending' :
@@ -67,6 +75,25 @@ export async function submitRsvp(
   await sendTelegramAlert(
     `🎉 <b>New RSVP</b>\nPage: ${page?.title ?? pageId}\nGuest: ${trimmedName}\nStatus: ${statusLabel}\nParty of: ${data.guestCount}\nView: ${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://our-memories.store'}/admin/rsvp`
   )
+
+  const ownerEmail = (page as any)?.users?.email
+  if (ownerEmail) {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://our-memories.store'
+    sendEmail({
+      to: ownerEmail,
+      subject: `New RSVP — ${trimmedName} is ${statusLabel}`,
+      html: rsvpReceivedEmail({
+        ownerName: (page as any)?.users?.full_name ?? ownerEmail,
+        pageTitle: page?.title ?? 'Your Page',
+        guestName: trimmedName,
+        status: data.status,
+        partySize: data.guestCount,
+        message: data.message.trim() || null,
+        rsvpListUrl: `${siteUrl}/admin/rsvp`,
+        attendingCount: attendingCount ?? 0,
+      }),
+    }).catch(console.error)
+  }
 
   return { success: true }
 }
